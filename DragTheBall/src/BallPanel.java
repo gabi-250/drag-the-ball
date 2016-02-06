@@ -17,6 +17,7 @@ public class BallPanel extends JPanel {
 	private int xIncrement, yIncrement;
 	private int mouseX, mouseY, draggedMouseX, draggedMouseY;
 	private boolean moveDown, moveRight, begin, grabBall;
+	private boolean horizontal, vertical;
 
 	public BallPanel()
 	{
@@ -29,6 +30,7 @@ public class BallPanel extends JPanel {
 			
 			public void mouseDragged(MouseEvent event)
 			{
+				horizontal = vertical = false;
 				x = event.getX();
 				y = event.getY();
 				
@@ -52,6 +54,15 @@ public class BallPanel extends JPanel {
 				
 				xIncrement = Math.abs( previousX - x);
 				yIncrement = Math.abs( previousY - y);
+				
+				if(xIncrement < 20)
+				{
+					vertical = true;
+				}
+				else if( yIncrement < 20)
+				{
+					horizontal = true;
+				}
 				
 				begin = true;
 
@@ -84,7 +95,6 @@ public class BallPanel extends JPanel {
 		frameHeight = height;
 		ball.setX( (frameWidth - ball.getDiameter() ) / 2);
 		ball.setY( (frameHeight - ball.getDiameter() )/ 2);
-//		System.out.println(this.getWidth() +" " + this.getHeight());
 		this.setSize(frameWidth, frameHeight);
 	}
 	
@@ -98,7 +108,6 @@ public class BallPanel extends JPanel {
 
 		Ellipse2D.Double circle = new Ellipse2D.Double(ball.getX(), ball.getY(), ball.getDiameter(), ball.getDiameter());
 	
-		//graphics.fillOval(ball.getX(), ball.getY(), ball.getDiameter(), ball.getDiameter());
 		graphics.fill(circle);
 		if( frame.getWidth() != frameWidth || frame.getHeight() != frameHeight )
 		{
@@ -108,7 +117,14 @@ public class BallPanel extends JPanel {
 		
 		try
 		{
-			Thread.sleep(7);
+			if( !horizontal && !vertical)
+			{
+				Thread.sleep(7);
+			}
+			else
+			{
+				Thread.sleep(4);
+			}
 		}
 		catch(InterruptedException e)
 		{}
@@ -120,39 +136,15 @@ public class BallPanel extends JPanel {
 		{
 			followMouse();
 		}
-		
 	}
 	
-	public void moveBall()
+	private void moveHorizontal(boolean moved)
 	{
-		if(moveRight == true)
+		if( moveRight == true)
 		{
 			if(ball.getX() < frameWidth - ball.getDiameter())
 			{
 				ball.setX(ball.getX() + 1);
-				
-				if( moveDown == true)
-				{
-					if( ball.getY() < this.getWidth() - ball.getDiameter())
-					{
-						ball.setY(ball.getY() + 1);
-					}
-					else
-					{
-						moveDown = false;
-					}
-				}
-				else
-				{
-					if( ball.getY() >= 0)
-					{
-						ball.setY(ball.getY() - 1);
-					}
-					else
-					{
-						moveDown = true;
-					}
-				}
 			}
 			else
 			{
@@ -164,38 +156,64 @@ public class BallPanel extends JPanel {
 			if(ball.getX() >= 0)
 			{
 				ball.setX(ball.getX() - 1);
-				
-				if( moveDown == true)
-				{
-					if( ball.getY() < this.getWidth() - ball.getDiameter())
-					{
-						ball.setY(ball.getY() + 1);
-					}
-					else
-					{
-						moveDown = false;
-					}
-				}
-				else
-				{
-					if( ball.getY() >= 0)
-					{
-						ball.setY(ball.getY() - 1);
-					}
-					else
-					{
-						moveDown = true;
-					}
-
-				}
 			}
 			else
 			{
 				moveRight = true;
 			}
-
 		}
-		
+		if( horizontal == false && !moved )
+		{
+			moveVertical(!moved);
+		}
+	}
+	
+	private void moveVertical(boolean moved)
+	{
+		if( moveDown == true)
+		{
+			if( ball.getY() < this.getWidth() - ball.getDiameter())
+			{
+				ball.setY(ball.getY() + 1);
+			}
+			else
+			{
+				moveDown = false;
+			}
+		}
+		else
+		{
+			if( ball.getY() >= 0)
+			{
+				ball.setY(ball.getY() - 1);
+			}
+			else
+			{
+				moveDown = true;
+			}
+		}
+		if(vertical == false && !moved)
+		{
+			moveHorizontal(!moved);
+		}
+	}
+	
+	public void moveBall()
+	{
+		if(horizontal)
+		{
+			moveHorizontal(false);
+		}
+		else if(vertical)
+		{
+			moveVertical(false);
+		}
+		else
+		{
+			moveHorizontal(false);
+			moveVertical(false);
+		}
+
 		repaint();
 	}
 	
@@ -205,7 +223,6 @@ public class BallPanel extends JPanel {
 		{
 			ball.setX(draggedMouseX - ball.getDiameter() / 2);
 			ball.setY(draggedMouseY - ball.getDiameter() / 2);
-		//System.out.println(draggedMouseX + " "+ draggedMouseY);
 			repaint();
 		}
 	}
